@@ -44,6 +44,8 @@
             left_max = 160;
             border = 1;
             falling_box = null;
+            x_max_count = 13;
+            y_max_count = 19;
             constructor () {
 
             }
@@ -56,7 +58,7 @@
                 this.field_element.appendChild(element);
                 let this2 = this;
                 const myPromise = new Promise(function (resolve, reject) {
-                    box.fall(parseInt(this2.field_element.style.height), resolve);
+                    box.fall(this2, parseInt(this2.field_element.style.height), resolve);
                 }).then(function () {
                     this2.addBox(new Box(this2.getNewBoxId()));
                 });
@@ -96,6 +98,8 @@
             is_touch_outer_bottom = false;
             is_touch_outer_left = false;
             element = null;
+            position_left = 0;
+            position_top = 0;
             box_style = {
                 width: '20px',
                 height: '20px',
@@ -139,12 +143,24 @@
                 }
             }
 
-            fall (max_height, resolve) {
+            fall (field, max_height, resolve) {
+                console.log(field);
+
                 let top = parseInt(this.box_style.top);
                 let height = parseInt(this.box_style.height) + 1;
+                let this_2 = this;
                 let interval_id = setInterval(() => {
                     top += height;
+                    let is_exists = false;
+                    for (let i = 0; field.boxes.length > i; ++i) {
+                        if (this_2.top === field.boxes[i].box_style.top && this_2.box_style.top === field.boxes[i].box_style.left === this_2.box_style.left) {
+                            clearInterval(interval_id);
+                            this.is_falling = false;
+                            return resolve('end');
+                        }
+                    }
                     this.setTop(top + 'px');
+                    
                     if (top + 2 + parseInt(this.box_style.height) >= max_height) {
                         clearInterval(interval_id);
                         this.is_falling = false;
@@ -168,7 +184,7 @@
         let field = new Field();
         let new_box_id = field.getNewBoxId();
         let box = new Box(new_box_id);
-        field.gameStart(box);        
+        field.gameStart(box);
 
     </script>
 </body>
