@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script
+			  src="https://code.jquery.com/jquery-3.7.1.min.js"
+			  integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+			  crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    
+    <title>Document</title>
+</head>
+<body>
+    <div
+        id="game_area"
+        style="
+            width: 262px;
+            height: 400px;
+            border: 1px solid #000;
+            border-radius: 5px;
+            position: relative;
+        ">
+        <div
+            id="start_button"
+            style="
+                width: 100px;
+                height: 40px;
+                background-color: #000;
+                color: #fff;
+                text-align: center;
+                line-height: 40px;
+                position: absolute;
+                top: 180px;
+                left: 80px;
+                cursor: pointer;"
+        >
+            START
+        </div>
+    </div>
+    <script>
+        class Field {
+            field_element = document.getElementById('game_area');
+            left_max = 160;
+            border = 1;
+            falling_box = null;
+            constructor () {
+
+            }
+            boxes = [];
+            addBox (box) {
+                this.falling_box = box;
+                this.boxes.push(box);
+                let element = box.toHtml();
+                box.setLeft((this.border * 4) + 116 + 'px');
+                this.field_element.appendChild(element);
+                let this2 = this;
+                const myPromise = new Promise(function (resolve, reject) {
+                    box.fall(parseInt(this2.field_element.style.height), resolve);
+                }).then(function () {
+                    this2.addBox(new Box(this2.getNewBoxId()));
+                });
+                
+            }
+            getMaxBoxId () {
+                let max_id = 0;
+                this.boxes.forEach(box => {
+                    if (box.id > max_id) {
+                        max_id = box.id;
+                    }
+                });
+                return max_id;
+            }
+            getNewBoxId () {
+                return this.getMaxBoxId() + 1;
+            }
+
+            gameStart (box) {
+                let start_button = this.field_element.querySelector('#start_button');
+                let this2 = this;
+                start_button.addEventListener('click', function () {
+                    start_button.style.display = 'none';
+                    this2.addBox(box);
+                });
+                
+            }
+        } 
+        class Box {
+            id = 0;
+            is_falling = true;
+            is_touch_box_top = false;
+            is_touch_box_right = false;
+            is_touch_box_bottom = false;
+            is_touch_box_left = false;
+            is_touch_outer_right = false;
+            is_touch_outer_bottom = false;
+            is_touch_outer_left = false;
+            element = null;
+            box_style = {
+                width: '20px',
+                height: '20px',
+                backgroundColor: 'aliceblue',
+                border: '1px solid #000',
+                position: 'absolute',
+                top: '0px',
+                left: '0px',
+                zIndex: 1,
+            }
+
+            top_box = null;
+            right_box = null;
+            bottom_box = null;
+            left_box = null;
+            constructor (id) {
+                this.id = id;
+            }
+
+            toHtml () {
+                let div = document.createElement('div');
+                Object.keys(this.box_style).forEach(key => {
+                    div.style[key] = this.box_style[key];
+                });
+                div.id = 'box_' + this.id;
+                this.element = div;
+                return div;
+            }
+
+            setTop (top) {
+                this.box_style.top = top;
+                if (this.element) {
+                    this.element.style.top = top;
+                }
+            }
+
+            setLeft (left) {
+                this.box_style.left = left;
+                if (this.element) {
+                    this.element.style.left = left;
+                }
+            }
+
+            fall (max_height, resolve) {
+                let top = parseInt(this.box_style.top);
+                let height = parseInt(this.box_style.height) + 1;
+                let interval_id = setInterval(() => {
+                    top += height;
+                    this.setTop(top + 'px');
+                    if (top + 2 + parseInt(this.box_style.height) >= max_height) {
+                        clearInterval(interval_id);
+                        this.is_falling = false;
+                        return resolve('end');
+                    }
+                }, 1000);
+            }
+        }
+
+        window.addEventListener('keydown', function (e) {
+            let key = e.key;
+            let falling_box = field.falling_box;
+            console.log(falling_box);
+            if (key === 'ArrowRight' && parseInt(falling_box.box_style.left) < 240) {
+                falling_box.setLeft(parseInt(falling_box.box_style.left) + 20 + 'px');
+            } else if (key === 'ArrowLeft' && parseInt(falling_box.box_style.left) > 0) {
+                falling_box.setLeft(parseInt(falling_box.box_style.left) - 20 + 'px');
+            }
+        });
+
+        let field = new Field();
+        let new_box_id = field.getNewBoxId();
+        let box = new Box(new_box_id);
+        field.gameStart(box);        
+
+    </script>
+</body>
+</html>
